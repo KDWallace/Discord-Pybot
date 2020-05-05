@@ -1,0 +1,2 @@
+20:43:03¦ Moose#6093 cleared 10 messages from channel #roll-channel
+20:43:53¦ Moose#6093 reloaded banned words file

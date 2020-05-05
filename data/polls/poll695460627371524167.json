@@ -1,0 +1,70 @@
+{
+    "question": "F in the chat for Ell?",
+    "author": "Moose#6093",
+    "authorID": 474037926641008640,
+    "started": "29-04-2020 19;38;28",
+    "limit": 4,
+    "total votes": 12,
+    "options": [
+        {
+            "name": "F",
+            "votes": 3
+        },
+        {
+            "name": "F",
+            "votes": 2
+        },
+        {
+            "name": "F",
+            "votes": 2
+        },
+        {
+            "name": "F but with more F",
+            "votes": 5
+        }
+    ],
+    "voters": [
+        {
+            "name": "Moose#6093",
+            "id": 474037926641008640,
+            "choices": [
+                4,
+                1,
+                2,
+                3
+            ]
+        },
+        {
+            "name": "SnowMexican#3340",
+            "id": 364705479160758272,
+            "choices": [
+                4,
+                1,
+                2,
+                3
+            ]
+        },
+        {
+            "name": "TheLizardWizardofHelicornia#6303",
+            "id": 214388565004648448,
+            "choices": [
+                4
+            ]
+        },
+        {
+            "name": "Only1Connor#1654",
+            "id": 379373007896051712,
+            "choices": [
+                1,
+                4
+            ]
+        },
+        {
+            "name": "Sonic_Spork#3790",
+            "id": 581781390471725056,
+            "choices": [
+                4
+            ]
+        }
+    ]
+}

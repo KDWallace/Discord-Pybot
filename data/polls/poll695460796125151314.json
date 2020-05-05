@@ -1,0 +1,70 @@
+{
+    "question": "When do people wanna play D&D?",
+    "author": "Moose#6093",
+    "authorID": 474037926641008640,
+    "started": "12-04-2020 22;13;26",
+    "limit": 1,
+    "total votes": 6,
+    "options": [
+        {
+            "name": "Sometime this month",
+            "votes": 6
+        },
+        {
+            "name": "Within May",
+            "votes": 0
+        },
+        {
+            "name": "Over the Summer",
+            "votes": 0
+        },
+        {
+            "name": "Sometime after the Summer",
+            "votes": 0
+        }
+    ],
+    "voters": [
+        {
+            "name": "SnowMexican#3340",
+            "id": 364705479160758272,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "TheLizardWizardofHelicornia#6303",
+            "id": 214388565004648448,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "Only1Connor#1654",
+            "id": 379373007896051712,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "Sonic_Spork#3790",
+            "id": 581781390471725056,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "Moose#6093",
+            "id": 474037926641008640,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "'Jacks_Murderer#8146",
+            "id": 687703199821594644,
+            "choices": [
+                1
+            ]
+        }
+    ]
+}

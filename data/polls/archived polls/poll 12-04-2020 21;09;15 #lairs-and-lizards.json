@@ -1,0 +1,48 @@
+{
+    "question": "Will we actually play D&D during quarantine?",
+    "author": "Moose#6093",
+    "authorID": 474037926641008640,
+    "started": "12-04-2020 21;09;15",
+    "limit": 1,
+    "total votes": 3,
+    "options": [
+        {
+            "name": "Yeye",
+            "votes": 2
+        },
+        {
+            "name": "NahNah",
+            "votes": 0
+        },
+        {
+            "name": "lol, I prefer Fortnite",
+            "votes": 1
+        }
+    ],
+    "voters": [
+        {
+            "name": "Only1Connor#1654",
+            "id": 379373007896051712,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "TheLizardWizardofHelicornia#6303",
+            "id": 214388565004648448,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "Moose#6093",
+            "id": 474037926641008640,
+            "choices": [
+                3
+            ]
+        }
+    ],
+    "finished": "12-04-2020 21;33;56",
+    "Ending Author": "Moose#6093",
+    "Ending AuthorID": 474037926641008640
+}

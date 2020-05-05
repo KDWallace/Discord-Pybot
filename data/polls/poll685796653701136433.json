@@ -1,0 +1,38 @@
+{
+    "question": "What caused the mess with the permissions?",
+    "author": "Moose#6093",
+    "authorID": 474037926641008640,
+    "started": "16-04-2020 00;41;03",
+    "limit": 1,
+    "total votes": 2,
+    "options": [
+        {
+            "name": "A. Entropy",
+            "votes": 0
+        },
+        {
+            "name": "B. Chaos Theory",
+            "votes": 1
+        },
+        {
+            "name": "3. The Monkeys are getting Angry\u2122",
+            "votes": 1
+        }
+    ],
+    "voters": [
+        {
+            "name": "Moose#6093",
+            "id": 474037926641008640,
+            "choices": [
+                3
+            ]
+        },
+        {
+            "name": "'Jacks_Murderer#8146",
+            "id": 687703199821594644,
+            "choices": [
+                2
+            ]
+        }
+    ]
+}

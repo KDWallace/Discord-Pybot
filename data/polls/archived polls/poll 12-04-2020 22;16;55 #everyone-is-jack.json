@@ -1,0 +1,66 @@
+{
+    "question": "Would people like to play this sometime this week?",
+    "author": "Moose#6093",
+    "authorID": 474037926641008640,
+    "started": "12-04-2020 22;16;55",
+    "limit": 1,
+    "total votes": 5,
+    "options": [
+        {
+            "name": "Yeye",
+            "votes": 5
+        },
+        {
+            "name": "NahNah",
+            "votes": 0
+        },
+        {
+            "name": "Maybe next week",
+            "votes": 0
+        },
+        {
+            "name": "Yes but not anytime soon",
+            "votes": 0
+        }
+    ],
+    "voters": [
+        {
+            "name": "SnowMexican#3340",
+            "id": 364705479160758272,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "Sonic_Spork#3790",
+            "id": 581781390471725056,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "Moose#6093",
+            "id": 474037926641008640,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "TheLizardWizardofHelicornia#6303",
+            "id": 214388565004648448,
+            "choices": [
+                1
+            ]
+        },
+        {
+            "name": "'Jacks_Murderer#8146",
+            "id": 687703199821594644,
+            "choices": [
+                1
+            ]
+        }
+    ],
+    "finished": "29-04-2020 19;37;46",
+    "Ending Author": "Moose#6093",
+    "Ending AuthorID": 474037926641008640
+}
