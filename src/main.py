@@ -26,7 +26,7 @@ import asyncio
 import webbrowser
 from datetime import datetime
 from discord.ext import commands
-from discord.utils import get
+from discord.utils import get, find
 
 #prefix needed before a command is called
 #(Changing this may make a few things not make sense as the bot will tell you to use '.' in some of its messages. It will work though)
@@ -39,6 +39,8 @@ PATH = (os.path.dirname(os.path.realpath(__file__)))[:-4]
 wordlist = []
 #initialise an object list for users to keep track of message count for anti-spamming
 users = []
+
+has_loaded = False
 
 #user object for preventing spam
 class User(object):
@@ -63,7 +65,6 @@ class User(object):
         #this is a check as it tells the bot that the demotion role was placed by the bot itself and will therefore look at the time left for the silence
         #if this is false but the user has the role, it must have been placed by an admin/moderator
         self.botplaced = False
-
 
 #function for adding stats to "usage.json" for  ".stats" command in Utility.
 def add_usage(use,add=1):
@@ -192,7 +193,7 @@ def loadWordDict():
             leetables += 1
         if 'b' in word:
             leetables += 1
-        
+
         tmp = [word]
         tmp1 = [word]
         #as multiple letters can be encrypted in the same word, the for loop creates a new version of the word for every letter that can be disguised
@@ -215,51 +216,57 @@ def loadWordDict():
 async def on_ready():
     #will load all extensions of the bot that can be found in the dir ./cogs
     #cogs allow for commands to be split into sections to make fixing easier and allows for the unloading/reloading of said sections
-    for filename in os.listdir('./cogs'):
-        #extensions are only considered if it is a python program (.py suffix)
-        if filename.endswith('.py'):
-            print(f'        Loading extension: {filename[:-3]}...',end='')
-            try:
-                client.load_extension(f'cogs.{filename[:-3]}')
-                print('Complete')
-            except commands.ExtensionAlreadyLoaded as e:
-                print('Extension previously loaded')
-                continue
-                
-    #once all extensions are loaded, host is informed that the bot is active
-    print(f'   - {client.user.name} is online!')
-    print(' ------------------------------------------------------------------')
-    #adds to "Successful bootups" stat in "usage.json"
-    #originally for testing the add_usage() function but was kept for fun
-    add_usage("Successful bootups")
+    global has_loaded
+    if not(has_loaded):
+        has_loaded = True
+        for filename in os.listdir('./cogs'):
+            #extensions are only considered if it is a python program (.py suffix)
+            if filename.endswith('.py'):
+                print(f'        Loading extension: {filename[:-3]}...',end='')
+                try:
+                    client.load_extension(f'cogs.{filename[:-3]}')
+                    print('Complete')
+                except commands.ExtensionAlreadyLoaded as e:
+                    print('Extension previously loaded')
+                    continue
+        #once all extensions are loaded, host is informed that the bot is active
+        print(f'   - {client.user.name} is online!')
+        print(' ------------------------------------------------------------------')
+        #adds to "Successful bootups" stat in "usage.json"
+        #originally for testing the add_usage() function but was kept for fun
+        add_usage("Successful bootups")
+    else:
+        ConsoleMessage('Lost connection, rebooted the bot')
 
 #function called after every message
 @client.event
 async def on_message(ctx):
     #the bot will ignore any message made by itself
-    if ctx.author.id == client.user.id:
+    if ctx.author.id == client.user.id or ctx.author.bot:
         return
+    memb = ctx.guild.get_member(ctx.author.id)
     #this may throw an error if the user does not have any permissions, hence the try/catch
     try:
         #checks if the user is an admin, if they are all further checks such as spam and badwords are bypassed
-        if ctx.channel.permissions_for(ctx.author).administrator:
+        if ctx.channel.permissions_for(memb).administrator:
             await client.process_commands(ctx)
             return
     except:
         pass
     #check for spam
     #check if user can message (do they have the demotion role)
-    if get(ctx.author.guild.roles, name='Heretic') in ctx.author.roles:
+    if get(ctx.guild.roles, name='Heretic') in memb.roles:
         #checks the list of users that have been monitored for the user
         for member in users:
             if member.id == ctx.author.id:
                 #if the role was placed by the bot and the temporary silence time has passed
                 if member.botplaced and time.time() - member.purge_time > member.timeout:
                     #remove the role and inform the user that they can now speak
-                    role = get(ctx.author.guild.roles, name='Heretic')
-                    await ctx.author.remove_roles(role)
+                    role = get(ctx.guild.roles, name='Heretic')
+                    await memb.remove_roles(role)
                     member.botplaced = False
                     await ctx.channel.send(f'I hope you can behave now {ctx.author.mention}! Next time, I\'ll be meaner!')
+                    ConsoleMessage(f'{ctx.author} has had the demotion role removed by the bot')
                     return
         #if the role was not placed by the bot or it was but the silence time has not passed
         try:
@@ -273,7 +280,7 @@ async def on_message(ctx):
     #will attempt to process any command that is in the users message
     else:
         await client.process_commands(ctx)
-                    
+
     #checks the list of users made by the bot for the member
     founduser = False
     for member in users:
@@ -311,7 +318,7 @@ async def on_message(ctx):
                     #if the message has more than 200 characters, increase counter by 1
                     if len(ctx.content) > 200:
                         member.msg_spam += 1
-            #if the message is not the same but is within 1.5 seconds, set last time to now and 
+            #if the message is not the same but is within 1.5 seconds, set last time to now and
             else:
                 member.msg_spam += 1
                 if len(ctx.content) > 200:
@@ -332,12 +339,12 @@ async def on_message(ctx):
                 member.offences += 1
                 #keeps track of time of disipline
                 member.purge_time = time.time()
-                #if the number of offences are 3 or less, the time out time is x minutes
-                if member.offences < 4:
+                #if the number of offences are 2 or less, the time out time is x minutes
+                if member.offences < 3:
                     member.timeout = 60 * member.offences
-                #if the user has done this more than 3 times, the time out time is 5 minutes * number of offences over 3
+                #if the user has done this more than 2 times, the time out time is 5 minutes * number of offences over 2
                 else:
-                    member.timeout = 300 * (member.offences-3)
+                    member.timeout = 300 * (member.offences-2)
 
                 ###loop used to remove all roles from the user
                 ###no longer in use now the bot checks for the heretic role and prevents messages
@@ -347,7 +354,7 @@ async def on_message(ctx):
                 #            await ctx.author.remove_roles(role)
                 #        except:
                 #            continue
-                
+
                 #obtains the demotion role and applies it to the user
                 #TODO: make the name of the role configurable and allow the bot to make it if not already existing
                 role = get(ctx.author.guild.roles, name='Heretic')
@@ -356,9 +363,9 @@ async def on_message(ctx):
 
                 #simple grammar check. If the time out is 1 minute (first offence), it will say 1 minute as opposed to 1 minutes. It's predantic but kinda nice
                 if member.timeout == 60:
-                    await ctx.channel.send(f'Sorry {ctx.author.mention}, but I\'ve been told to demote anyone that\'s spamming the server!\nTry messaging in 1 minute to remove the @Heretic role\nIf something is wrong about this then just send a message to <@!474037926641008640>')
+                    await ctx.channel.send(f'Sorry {ctx.author.mention}, but I\'ve been told to demote anyone that\'s spamming the server!\nTry messaging in 1 minute to remove the {role} role\nIf something is wrong about this then just send a message to <@!474037926641008640>')
                 else:
-                    await ctx.channel.send(f'Sorry {ctx.author.mention}, but I\'ve been told to demote anyone that\'s spamming the server!\nTry messaging in {int(member.timeout/60)} minutes to remove the @Heretic role\nIf something is wrong about this then just send a message to <@!474037926641008640>')
+                    await ctx.channel.send(f'Sorry {ctx.author.mention}, but I\'ve been told to demote anyone that\'s spamming the server!\nTry messaging in {int(member.timeout/60)} minutes to remove the {role} role\nIf something is wrong about this then just send a message to <@!474037926641008640>')
 
                 #sets the check to false, the bot is done dealing with the user at this point
                 member.isPurged = False
@@ -439,30 +446,32 @@ async def on_command_error(ctx,error):
                 #'simple' gives a single command output
                 #'random' gives a random output
                 #'user' gives a response based on the user
-                if cmds[cmd]['type'] == 'simple':
-                    out = cmds[cmd]['response']
-                elif cmds[cmd]['type'] == 'random':
-                    out = random.choice(cmds[cmd]['response'])
-                elif cmds[cmd]['type'] == 'user':
+                if 'response' in cmds[cmd]:
+                    if isinstance(cmds[cmd]['response'],str):
+                        out = cmds[cmd]['response']
+                    elif isinstance(cmds[cmd]['response'],list):
+                        out = random.choice(cmds[cmd]['response'])
+                elif 'userlist' in cmds[cmd]:
                     userfound = False
                     #attempts to find the users id in the list
                     for member in cmds[cmd]['userlist']:
                         #if found, will respond with the user specific response
                         if ctx.author.id == member['id']:
-                            out = member['response']
+                            if isinstance(member['response'],str):
+                                out = member['response']
+                            elif isinstance(member['response'],list):
+                                out = random.choice(member['response'])
                             userfound = True
                             break
                     #if user could not be found, will respond with generic response found
                     if not userfound:
-                        out = cmds[cmd]['generic']
+                        if 'generic' in cmds[cmd]:
+                            out = cmds[cmd]['generic']
+                        else:
+                            return
                     #if no response, use None (null in json)
                     if out == None:
                         return
-
-                #if invalid command type, inform errorlog
-                else:
-                    ErrorLog(f'Invalid cmd type for {msg[0]}: {cmds[cmd]["type"]}')
-                    return
                 break
         #if the command has been found, send output
         if found:
@@ -608,5 +617,3 @@ if __name__ == '__main__':
             webbrowser.open('https://discordapp.com/developers/applications/')
         except:
             pass
-    
-    
