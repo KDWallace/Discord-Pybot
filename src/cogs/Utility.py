@@ -35,7 +35,7 @@ class Utility(commands.Cog):
 
     #clean up tool that deletes a specified amount of messages, default 1
     #must have admin privileges to use
-    @commands.command()
+    @commands.command(description='A quick method of removing a number of messages quickly')
     @commands.has_permissions(administrator=True)
     async def clear(self, ctx, amount=1):
         await ctx.channel.purge(limit=amount+1)
@@ -63,7 +63,7 @@ class Utility(commands.Cog):
 
     #changes the status of the bot on discord below the bots name. The user can choose from either "playing", "watching" or "listening to"
     #must have admin privileges to use
-    @commands.command()
+    @commands.command(description='Allows for the status of the bot to be changed\nExample: .changestatus playing with scissors\n.changestatus watching the world burn\n.changestatus listening (to) the good noises')
     @commands.has_permissions(administrator=True)
     async def changestatus(self, ctx, statType, *, status):
         #creates the action that the bot is doing based on input
@@ -96,7 +96,7 @@ class Utility(commands.Cog):
         else:
             ErrorLog(error)
 
-    @commands.command()
+    @commands.command(description='Help page for the custom commands')
     async def help2(self, ctx, *, commandname=None):
         with open('../config/custom commands.json', 'r', encoding = 'UTF-8') as f:
             cmds = json.load(f)
@@ -134,7 +134,7 @@ class Utility(commands.Cog):
     async def help2_error(self, ctx, error):
         ErrorLog(error)
 
-    @commands.command()
+    @commands.command(description='Presents the usage stats of the bot')
     async def stats(self,ctx):
         string = '``` ==== Bot Usage Stats ===='
         try:
@@ -154,8 +154,73 @@ class Utility(commands.Cog):
     @stats.error
     async def stats_error(self,ctx,error):
         ErrorLog(error)
-            
-            
+
+    @commands.command(description='Allows admin to create a command\nUsage: make sure multi word strings used for the options is inside of "" and that requireAdmin is either "true" or "false"\nFor random choice response, separate the choices with ".+"\n\nExample: .addcmd randmessage "Hello there.+This is a random message.+I am also random"\n\nThis gives 3 possible responses that the bot will randomly choose from when someone types .randmessage\n\nFor extra fun, use {user.mention} to mention the user, {user.name} for their username or {message} if you would like it to use the message after the command.\nExample: .addcmd hello "Hey there {user.mention}! :smile:"\n\nOnly the command name and the response(s) are required to make a command. The rest are for extra features')
+    @commands.has_permissions(administrator=True)
+    async def addcmd(self,ctx,cmdName,response,error=None,desc=None,format=None,requireAdmin=False,usage=None):
+        with open('../config/custom commands.json', 'r', encoding = 'UTF-8') as f:
+            cmds = json.load(f)
+        if cmdName.startswith('.') == False:
+            cmdName = '.' + cmdName
+        if cmdName in cmds:
+            await ctx.send(f'Sorry {ctx.author.mention}, but there is already a command called `{cmdName}`')
+            return
+        if '.+' in response:
+            response = response.split('.+')
+        if requireAdmin.tolower() == 'true':
+            requireAdmin = True
+        else:
+            requireAdmin = False
+        newcmd = {'response': response}
+        if (error == 'None' or error == None) and '{message}' in response:
+            error = f'Missing required message after `{cmdName}`'
+        if error != 'None' and error != None:
+            newcmd['error'] = error
+        if desc != 'None' and desc != None:
+            newcmd['desc'] = desc
+        if (format == 'None' or format == None) and '{message}' in response:
+            format = f'{cmdName} [message]'
+        if format != 'None' and format != None:
+            newcmd['format'] = format
+        if requireAdmin:
+            newcmd['admin'] = True
+        if usage != 'None' and usage != None:
+            newcmd['usage'] = usage
+        cmds[cmdName] = newcmd
+        with open('../config/custom commands.json', 'w', encoding = 'UTF-8') as f:
+            json.dump(cmds,f,indent=4)
+        await ctx.send(f'Successfully created `{cmdName}` command! :smile:')
+        ConsoleMessage(f'{ctx.author} created new command: {cmdName}')
+
+    @addcmd.error
+    async def addcmd_error(self,ctx,error):
+        await ctx.send(f'Sorry {ctx.author.mention}, but I think you inputted that command in wrong. Try adding a response after the command! :sweat_smile:')
+        ErrorLog(error)
+
+    @commands.command(description='This is used to remove a custom command. (Note: Some commands are protected and cannot be removed without dev permission)')
+    @commands.has_permissions(administrator=True)
+    async def rmvcmd(self,ctx,name):
+        with open('../config/custom commands.json', 'r', encoding = 'UTF-8') as f:
+            cmds = json.load(f)
+        if name.startswith('.') == False:
+            name = '.' + name
+        if name in cmds:
+            if 'protected' in cmds[name] and cmds[name]['protected'] == True:
+                await ctx.send(f'Sorry {ctx.author.mention} but this is a protected command. You need to contact the developer to remove this one')
+                ConsoleMessage(f'{ctx.author} attempted to remove command {name}')
+                return
+            else:
+                del cmds[name]
+                ConsoleMessage(f'{ctx.author} removed the custom command: {name}')
+                await ctx.send(f'{name} has been successfully removed from the custom commands list!')
+                return
+        else:
+            await ctx.send(f'I\'m sorry {ctx.author.mention} but the custom command {name} doesn\'t appear to exist')
+
+    @rmvcmd.error
+    async def rmvcmd_error(self,ctx,error):
+        await ctx.send(f'You need to enter the name of the command after `.rmvcmd`')
+        ErrorLog(error)
 
 #adds extension to client when called
 def setup(client):
