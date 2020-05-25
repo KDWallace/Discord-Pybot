@@ -1,14 +1,22 @@
-0.3.2.0:
-+ added custom commands list to ".help2" as well as small descriptions for each of them
-+ added ".stats" to actually use "usage.json"
-+ added the ability to take in args when booting up. This is present in the batch file. At the moment it is entirally for asthetic and what the program should call itself and its version
-+ added TOKEN.txt folder to prevent accidental posting of users token when sharing code between users and to encourage descretion
-+ added new method of obtaining token. Upon failing to supply with a token the https://discordapp.com/developers/applications/ url will be automatically loaded using their preferred browser to allow the user to obtain one if it is missing (nifty!)
+0.4.0.0:
++ added .addcmd that allows for users to add custom commands somewhat easier with some configuration. (random response command and basic command only so far)
++ added .rmvcmd that allows users to remove none protected custom commands
++ added protected custom commands. These are commands that cannot be deleted using commands
++ added descriptions to some commands. This was done as users had issues remembering some formats
 
-~ fixed a long standing bug where the program will attempt to reload previously loaded extensions (cogs) upon losing connection and reconnecting and throw an exception for each cog
-~ fixed (hopefully) a bug where an exception may be thrown if a user that is not an admin sends multiple messages
+~ Improved custom commands! Now "types" are gone and the program will figure out the type of command based on the contents
+~ Fixed a lot of bugs but probably made more
+
+
 
 [ToDo]:
+(DONE) COMMANDS THAT MAKE MORE COMMANDS!:
+	- I am tempted to create a command for admins that will allow for them to add to the "custom commands.json"
+	- This may seem redundant as it will use similar formatting but this is mostly for admins that are not the host yet want to contribute to custom commands
+(SOMEWHAT DONE) BETTER CUSTOMISATION FOR CUSTOM COMMANDS!:
+	- I want "custom commands.json" to be easy to use for those that aren't too comfortable with programming and am trying to make sure it is not too overwhelming and, more importantly, fun!
+	- I think it is difficult to add plenty of features to make the most interesting commands quickly while making sure that it is not too scary
+	- This was recently achieved in a previous update converting useful f-string data from heavily scary and pythonic (see 0.3.1.1 update log) to simple, easy to use/understand single words
 + MORE CONFIGURATION!
 	- Allow for a configurable custom role name for demotions due to spam. If not created yet then the bot will create it
 	- Also allow for configuration of moderation features, such as time penalties for spam, what is considered spam and how much of it should be allowed
@@ -18,16 +26,9 @@
 + ENABLE/DISABLE MODERATION FEATURES!:
 	- At the moment, the only way to disable the banned word check is to have no banned words in the file. This will be changes with commands
 	- This will also go for spam check and auto delete for demotion role
-+ COMMANDS THAT MAKE MORE COMMANDS!:
-	- I am tempted to create a command for admins that will allow for them to add to the "custom commands.json"
-	- This may seem redundant as it will use similar formatting but this is mostly for admins that are not the host yet want to contribute to custom commands
 + BETTER COMMAND NAMES!:
 	- This one is a bit of a nitpick but I am not fully satisfied with the names of some of the commands such as the new ".help2" is a bit...silly
 	- I try to make the names of the commands short and easy to use while being somewhat memorable
-+ BETTER CUSTOMISATION FOR CUSTOM COMMANDS!:
-	- I want "custom commands.json" to be easy to use for those that aren't too comfortable with programming and am trying to make sure it is not too overwhelming and, more importantly, fun!
-	- I think it is difficult to add plenty of features to make the most interesting commands quickly while making sure that it is not too scary
-	- This was recently achieved in a previous update converting useful f-string data from heavily scary and pythonic (see 0.3.1.1 update log) to simple, easy to use/understand single words
 + MORE WITH BATCH!:
 	- I am currently teaching myself how to utilise .bat files fully and I am having a bit of fun with it. I am going to have the .bat generate some missing directories/files if needed rather than adding the code
 	- This is more of a "to prove that I can" thing with batch as I have already proven in the code for several files that I can easily generate missing files with python
@@ -40,9 +41,19 @@
 	- Currently as it stands, each instance of the bot is best used with one or two servers at a time. This is entirally down to lazieness and a lack of a need to change it since that's all I use it for
 	- If I feel I have enough time on my hands (and I really want to give myself something to do), I will change a lot of the config to allow for optimal multiserver use! (This will probably be easy, I just really don't want to)
 	- This shouldn't deter anyone from using it on multiple servers, you really can! It's just config data, usage and logs are collected from everywhere the instance of your bot is used.
-	- Tldr: You can use it on multiple servers, but if you want to know what server that error came from or what the stats are for just one server, you're going to have a bad time and get stats from all servers and errors from all servers
+	- Tldr: You can use it on multiple servers, but if you want to know what server that error came from or what the stats are for just one server, you're going to have a bad time. All stats/errors/console messages come from all servers
 
 
+
+0.3.2.0:
++ added custom commands list to ".help2" as well as small descriptions for each of them
++ added ".stats" to actually use "usage.json"
++ added the ability to take in args when booting up. This is present in the batch file. At the moment it is entirally for asthetic and what the program should call itself and its version
++ added TOKEN.txt folder to prevent accidental posting of users token when sharing code between users and to encourage descretion
++ added new method of obtaining token. Upon failing to supply with a token the https://discordapp.com/developers/applications/ url will be automatically loaded using their preferred browser to allow the user to obtain one if it is missing (nifty!)
+
+~ fixed a long standing bug where the program will attempt to reload previously loaded extensions (cogs) upon losing connection and reconnecting and throw an exception for each cog
+~ fixed (hopefully) a bug where an exception may be thrown if a user that is not an admin sends multiple messages
 
 
 0.3.1.1:
