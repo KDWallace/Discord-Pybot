@@ -38,7 +38,7 @@ class Voting(commands.Cog):
         return True
 
     #commands
-    @commands.command(aliases=['startvote'])
+    @commands.command(aliases=['startvote'],description='Allows for polls to be created. Use ".+" to separate options\n\nExample: .startpoll "Question here" 2 Yes.+No.+I don\'t know.+Maybe\n\nThis would give users the ability to vote for up to 2 different options')
     @commands.has_permissions(administrator=True)
     @commands.check(has_channel_perms)
     async def startpoll(self, ctx, question, limit, *, options):
