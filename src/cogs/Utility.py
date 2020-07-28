@@ -1,18 +1,16 @@
-######### Bot V0.2.1 created by Kiran Wallace #########
+######### Bot V0.4 created by Kiran Wallace #########
 ### NOTE: This is not the main module. Please run main.py
 # This is an extension of main.py
 # This bot is for the intent to be used as a fun resource for Discord servers and is a work in progress
 #
 # In this section of code, you will find the following:
 ### Commands:
-# .ping, .clear, .changestatus
+# .clear, .changestatus, .help2, .stats, .addcmd, .rmvcmd
 ### Functions:
 # setup
 ################################################################################################################
 
-import discord
-import random
-import json
+import discord, random, json
 from main import ConsoleMessage, ErrorLog, add_usage
 from discord.ext import commands
 
@@ -221,6 +219,7 @@ class Utility(commands.Cog):
     async def rmvcmd_error(self,ctx,error):
         await ctx.send(f'You need to enter the name of the command after `.rmvcmd`')
         ErrorLog(error)
+
 
 #adds extension to client when called
 def setup(client):

@@ -1,18 +1,19 @@
-######### Bot V0.2.1 created by Kiran Wallace #########
+######### Bot V0.4 created by Kiran Wallace #########
 ### NOTE: This is not the main module. Please run main.py
 # This is an extension of main.py
 # This bot is for the intent to be used as a fun resource for Discord servers and is a work in progress
 #
 # In this section of code, you will find the following:
 ### Commands:
-# .roll
+# .roll, .statgen, .youtube
 ### Functions:
 # rollSingleDice, setup
 ################################################################################################################
 
-import discord
-import random
-from main import has_channel_perms, ConsoleMessage, add_usage
+import discord, random, os, math, requests, urllib
+from bs4 import BeautifulSoup as bs
+from main import has_channel_perms, ConsoleMessage, add_usage, PATH
+from PIL import Image, ImageFont, ImageDraw
 from time import sleep
 from discord.ext import commands
 
@@ -173,6 +174,193 @@ class Fun(commands.Cog):
         #otherwise, assume invalid input
         else:
             await ctx.send(f'Sorry {ctx.author.mention} but I don\'t think I understand you.\nTry typing `.roll` followed by the number of dice you would like to roll (max 30), then the dice you would like to use!\nE.g: if I wanted to roll 5, 6-sided dice, I would type `.roll 5d6`')
+
+    @commands.command()
+    async def statgen(self,ctx,*,name=None):#,*,pref=None):
+        pref = None
+        stattypes = ['STR','DEX','CON','INT','WIS','CHA']
+        if 'Stats:' in name:
+            tmp = name.split('Stats:')
+            tmp = tmp[1].split()
+
+            for item in pref:
+                for stat in stattypes:
+                    if item.lower().startswith(stat):
+                        if pref == None:
+                            pref = []
+                        pref.append(stat)
+        #randomises alignment
+        morals = ['Good','Neutral','Evil']
+        method = ['Lawful','Neutral','Chaotic']
+        alignment =  random.choice(method) + ' ' + random.choice(morals)
+
+        #custom name for neutral neutral random choice
+        if alignment == 'Neutral Neutral':
+            alignment = 'True Neutral'
+
+        #loads background image and crops to size
+        img = Image.open(f'{PATH}\\resources\\images\\stained.png')
+        img = img.crop((0,0,500,160))
+
+        #loads stat separator made in paint.net
+        separator = Image.open(f'{PATH}\\resources\\images\\statseps.png')
+
+        #defines the different fonts that are being used
+        title   = ImageFont.truetype(f'{PATH}\\resources\\fonts\\MrsEavesSmallCaps.ttf',34)
+        italic  = ImageFont.truetype(f'{PATH}\\resources\\fonts\\ScalaSans Italic.ttf',16)
+        regular = ImageFont.truetype(f'{PATH}\\resources\\fonts\\ScalaSans Regular.ttf',17)
+
+        #obtains the height of the title text
+        h = title.getsize(ctx.author.name)[1]
+
+        #draws the background
+        draw = ImageDraw.Draw(img)
+
+        #obtains the most recently modified rank of the user
+        latest_rank = str(ctx.author.roles[-1]).title()
+        if latest_rank == '@Everyone':
+            latest_rank = 'Player'
+
+        #draws the name of the user to the background along with their rank and randomly chosen alignment underneith
+        if name == None and ctx.author.nick == None:
+            name = ctx.author.name
+        elif name == None and ctx.author.nick != None:
+            name = ctx.author.nick
+        name = name.title()
+        draw.text((20,20),name,font=title,fill=(88, 23, 13))
+        draw.text((20,h+25),f'{latest_rank}, {alignment}',font=italic,fill=(0,0,0))
+
+        #increases the height and adds the separator to the background
+        h += italic.getsize('Player')[1] + 25
+        img.paste(separator,(20,h+5))
+        h += 10
+
+        #stat generation with 4 dice rolls for each block (take the best 3)
+        stats = []
+        for i in range(6):
+            rolls = [0,0,0]
+            for k in range(4):
+                rand = random.randint(1,6)
+                if k < 3:
+                    rolls[k] = rand
+                else:
+                    #sorts in ascending order so the lowest can be replaced if needed
+                    rolls.sort()
+                    if rolls[0] < rand:
+                        rolls[0] = rand
+            stats.append(sum(rolls))
+
+        #draws the names of the stat types to the background using a for loop
+        count = 0
+        if pref != None:
+            #try:
+            tmpstats = stats
+            stats.sort()
+            stats = stats[::-1]
+            pref = pref.split()
+            preforder = [7,7,7,7,7,7]
+            pref = [x.upper() for x in pref]
+            for p in pref:
+                print(p)
+                for s in stattypes:
+                    if s == p:
+                        preforder[count] = stattypes.index(s)
+                        count += 1
+                        #preforder.append(stattypes.index(s))
+            print(stats)
+            counter = 0
+            tmp = [0,0,0,0,0,0]
+            tmp2 = []
+            j = 0
+            for i in preforder:
+                if i < 6:
+                    tmp[counter] = stats[i]
+                else:
+                    tmp2.append(stats[j])
+                j += 1
+            if len(tmp2) > 0:
+                random.shuffle(tmp2)
+                j = 0
+                for i in range(len(tmp)):
+                    if tmp[i] == 0:
+                        tmp[i] = tmp2[j]
+                        j += 1
+
+            print(preforder)
+            #stats = [x for y, x in sorted(zip(preforder, stats))]
+            stats = tmp
+            print(stats)
+            #except:
+            #    stats = tmpstats
+
+
+        x = 40
+        for stat in stattypes:
+            draw.text((x,h+10),stat,font=regular,fill=(0,0,0))
+            x += 75
+
+        #increases the height
+        h += 10 + regular.getsize('STR')[1]
+
+        #calculates the stat bonus for each slot
+        bonus = []
+        print(stats)
+        for stat in stats:
+            string = ''
+            if stat > 9:
+                string = '+'
+            string = string + str(math.floor((stat-10)/2))
+            bonus.append(string)
+
+        #draws the stat bonus underneith each stat
+        x = 35
+        for i in range(6):
+            dx = 0
+            if stats[i] < 10:
+                dx = 5
+            draw.text((x+dx,h+5),f'{stats[i]} ({bonus[i]})',font=regular,fill=(0,0,0))
+            x += 75
+
+        #increases the height value and adds another separator under the new stats
+        h += regular.getsize('10')[1]
+        img.paste(separator,(20,h+20))
+
+        #the image is temp saved in the \tmp folder, sent to discord and then immediatelly deleted
+        img.save(f'{PATH}\\resources\\images\\tmp\\stats.png')
+        await ctx.send(file=discord.File(f'{PATH}\\resources\\images\\tmp\\stats.png'))
+        os.remove(f'{PATH}\\resources\\images\\tmp\\stats.png')
+
+    @commands.command(aliases=['yt'],description='Allows for users to quickly search something on youtube. The bot will retrieve the first result of the search')
+    async def youtube(self,ctx,*,query):
+        ConsoleMessage(f'{ctx.author} has requested for the youtube search: "{query}"')
+        found = False
+        for i in range(20):
+            if found:
+                break
+            base="https://www.youtube.com/results?search_query="
+            query = query.replace(' ','+')
+            #query = urllib.parse.quote(query)
+            r = requests.get(base+query)
+            page=r.text
+            soup=bs(page,'html.parser')
+
+            vids = soup.findAll('a',attrs={'class':'yt-uix-tile-link'})
+
+            for v in vids:
+                if str(v['href']).startswith('/watch?v='):
+                    result = 'https://www.youtube.com' + v['href']
+                    found = True
+                    ConsoleMessage(f'Requested video for {ctx.author} found: "{result}" in {i+1} attempts')
+                    await ctx.send(result)
+                    break
+        if not(found):
+            print('failed to find')
+            await ctx.send(f'Sorry {ctx.author.mention}, but I was not able to find anything :frowning:')
+
+    @youtube.error
+    async def youtube_error(self,ctx,error):
+        await ctx.send(f'Sorry {ctx.author.mention}, but I was not able to find anything :frowning:')
+
 
 #adds extension to client when called
 def setup(client):

@@ -1,5 +1,5 @@
-######### Bot V0.2.1 created by Kiran Wallace #########
-#### - created 8th April 2020 - last edit 13th April
+######### Bot V0.4 created by Kiran Wallace #########
+#### - created 8th April 2020 - last edit 7th July 2020
 #
 ######### API Created by Rapptz on GitHub #########
 #https://github.com/Rapptz/discord.py
@@ -7,23 +7,16 @@
 #
 # In this section of code, you will find the following:
 ### Events:
-# on_ready, on_command_error, on_member_join, on_member_remove
+# on_ready, on_message, on_command_error, on_member_join, on_member_remove
 ### Commands:
-# .load, .unload, .reload
+# .load, .unload, .reload, .dictreload
 ### Functions:
-# add_usage, ConsoleMessage, ErrorLog, has_channel_perms, deLeetSpeak
+# add_usage, ConsoleMessage, ErrorLog, has_channel_perms, deLeetSpeak, loadWordDict,
 ### Objects:
 # User
 ################################################################################################################
 
-import discord
-import os
-import sys
-import json
-import random
-import time
-import asyncio
-import webbrowser
+import discord, os, sys, json, random, time, asyncio, webbrowser
 from datetime import datetime
 from discord.ext import commands
 from discord.utils import get, find
@@ -589,7 +582,7 @@ if __name__ == '__main__':
         #if so, use the arguments as the name and version
         version = ' '.join(sys.argv[1:])
     #if no arguments were passed (by most likely using an IDE), use the earliest update for this bot
-    #(this most likely won't be updated much from now)
+    #(this most likely won't be updated much from now on)
     else:
         version = 'PyBot V0.3.0.0'
     print(f' ========================= {version} ========================= ')

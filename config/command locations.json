@@ -35,6 +35,37 @@
       "blacklist category": []
     },
     {
+      "name": ".newstats",
+      "whitelist": true,
+      "blacklist": false,
+      "whitelist channels": [
+        {
+          "server": "Moose's Test Server",
+          "name": "roll-channel",
+          "id": 698892887563305040
+        },
+        {
+          "server": "Jubb High Council",
+          "name": "bot-testing",
+          "id": 696809150193205370
+        }
+      ],
+      "whitelist category": [
+        {
+          "server": "Moose's Test Server",
+          "category": "TEST ROLLS",
+          "id": 698894795149672538
+        },
+        {
+          "server": "The Realm Of JUBB",
+          "category": "RPG CORNER",
+          "id": 695460452834213957
+        }
+      ],
+      "blacklist channels": [],
+      "blacklist category": []
+    },
+    {
       "name": ".startpoll",
       "whitelist": false,
       "blacklist": false,

@@ -1,0 +1,15 @@
+{
+    "message id": 708402446506000504,
+    "channel id": 708398220161712188,
+    "message": "Hey @everyone!\nPlease react to this message if you would like access to other parts of the server with the reactions shown below! :smile:\n",
+    "roles": [
+        {
+            "role name": "Minecraft",
+            "reaction": "grassblock"
+        },
+        {
+            "role name": "Stellaris",
+            "reaction": "void"
+        }
+    ]
+}

@@ -1,0 +1,32 @@
+{
+    "question": "is this still working?",
+    "author": "Moose#6093",
+    "authorID": 474037926641008640,
+    "started": "22-07-2020 04;33;52",
+    "limit": 2,
+    "total votes": 2,
+    "options": [
+        {
+            "name": "yes",
+            "votes": 0
+        },
+        {
+            "name": "only on Tuesdays",
+            "votes": 1
+        },
+        {
+            "name": "lol no",
+            "votes": 1
+        }
+    ],
+    "voters": [
+        {
+            "name": "Moose#6093",
+            "id": 474037926641008640,
+            "choices": [
+                2,
+                3
+            ]
+        }
+    ]
+}

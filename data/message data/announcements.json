@@ -1,0 +1,12 @@
+{
+  [
+    {
+      "channel name": "name",
+      "channel id": 0,
+      "author name": "name",
+      "author id": 0,
+      "time": "time",
+      "message": "string"
+    }
+  ]
+}

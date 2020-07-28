@@ -1,6 +1,4 @@
-import discord
-import json
-import os
+import discord, json, os
 from datetime import datetime
 from main import ConsoleMessage, ErrorLog, has_channel_perms, add_usage, PATH
 from discord.ext import commands

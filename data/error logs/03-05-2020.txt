@@ -1,6 +1,0 @@
-18:05:20¦ Command raised an exception: NameError: name 'json' is not defined
-18:06:03¦ Command raised an exception: UnicodeDecodeError: 'charmap' codec can't decode byte 0x9d in position 385: character maps to <undefined>
-18:10:44¦ Command raised an exception: HTTPException: 400 Bad Request (error code: 50035): Invalid Form Body
-In content: Must be 2000 or fewer in length.
-18:28:47¦ Command raised an exception: TypeError: unhashable type: 'dict'
-18:35:04¦ Command raised an exception: ExtensionNotLoaded: Extension 'cogs.utility' has not been loaded.

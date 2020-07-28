@@ -1,9 +1,9 @@
 ::Everything here is entirely decorative
 @echo off
-set version=PyBot V0.3.1.2
+set version=PyBot V0.4
 title -= %version% =-
 color 02
-mode con cols=68 lines=30
+mode con cols=68
 
 ::Runs the actual code
 python main.py %version%

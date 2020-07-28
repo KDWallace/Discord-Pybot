@@ -1,11 +1,13 @@
-######### Bot V0.2.1 created by Kiran Wallace #########
+######### Bot V0.4 created by Kiran Wallace #########
 ### NOTE: This is not the main module. Please run main.py
 # This is an extension of main.py
 # This bot is for the intent to be used as a fun resource for Discord servers and is a work in progress
 #
 # In this section of code, you will find the following:
+### Events:
+# on_raw_reaction_add, on_raw_reaction_remove
 ### Commands:
-#
+# .autoroles, .addrole, .rolemessage, .removerole
 ### Functions:
 # setup
 ################################################################################################################

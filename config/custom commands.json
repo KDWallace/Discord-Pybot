@@ -14,36 +14,6 @@
 				":flag_au: ¿ʇᴉ sǝoƃ ʍoɥ 'ǝʇɐɯ ᴉ∀"
 			]
 		},
-	".doyoulikeme?":
-		{
-			"desc": "A command for testing the 'user' response type for custom commands that will come out with a preset response based on user id",
-			"type": "user",
-			"generic": "err...who are you?",
-			"userlist":
-			[
-				{
-					"name": "Moose",
-					"id": 474037926641008640,
-					"response": "Well...I don't really have a choice since you made me..."
-				},
-				{
-					"name": "Spork",
-					"id": 581781390471725056,
-					"response": "Oh I love Sonic the hedgehog:tm:!"
-				},
-				{
-					"name": "jallerston",
-					"id": 459404973583761429,
-					"response": "Oh hi Jellemegafuck!"
-				}
-			]
-		},
-	".level":
-		{
-			"desc": "A simple command that informs the user of their rank on the mee6 bot leaderboards",
-			"type": "simple",
-			"response": "Here you are, {user.mention}! Remember that the messages are limited to once per minute to prevent spam :smile:\nhttps://mee6.xyz/leaderboard/685766882275754162"
-		},
 	".8ball":
 		{
 			"desc": "The user asks a question to the bot and the bot will call upon the mystical forces to answer the users question as accurately as possible",
@@ -80,24 +50,5 @@
 			"type": "simple",
 			"response": "pong! {round(client.latency * 1000)}ms",
 			"counter": "pings"
-		},
-	".albion":
-		{
-			"desc":"Something that I regret creating...",
-			"type": "user",
-			"generic": null,
-			"userlist":
-			[
-				{
-					"name": "Moose",
-					"id": 474037926641008640,
-					"response": "Hey {user.mention}!\nDo you have money? No? Then you should play ALBION ONLINE\nhttps://albiononline.com/en/home\nGet it now! - HEILONG"
-				},
-				{
-					"name": "Connor",
-					"id": 379373007896051712,
-					"response": "Hey {user.mention}!\nDo you have money? No? Then you should play ALBION ONLINE\nhttps://albiononline.com/en/home\nGet it now! - HEILONG"
-				}
-			]
 		}
 }
