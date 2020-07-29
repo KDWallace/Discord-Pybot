@@ -86,7 +86,7 @@ def ConsoleMessage(message):
     #formatting for the console with the time, a separator and the message
     message = f'{datetime.now().strftime("%H:%M:%S")}¦ {message}'
     #appends to existing or creates a new file with date formatting. If one does not exist for that day then will create a new log
-    with open(f'{PATH}\\data\\user logs\\{datetime.today().strftime("%d-%m-%Y")}.txt','a',encoding='UTF-8') as f:
+    with open(f'{PATH}\\data\\user logs\\{datetime.today().strftime("%Y-%m-%d")}.txt','a',encoding='UTF-8') as f:
         #due to some channels containing emojis, an error can be thrown for the unicode
         try:
             f.write(f'{message}\n')
@@ -104,7 +104,7 @@ def ErrorLog(error):
     #formatting for the console with the time, a separator and the message
     message = f'{datetime.now().strftime("%H:%M:%S")}¦ '
     #appends to existing or creates a new file with date formatting. If one does not exist for that day then will create a new log
-    with open(f'{PATH}\\data\\error logs\\{datetime.today().strftime("%d-%m-%Y")}.txt','a') as f:
+    with open(f'{PATH}\\data\\error logs\\{datetime.today().strftime("%Y-%m-%d")}.txt','a') as f:
         #due to some channels containing emojis, an error can be thrown for the unicode
         try:
             f.write(f'{message}{error}\n')
