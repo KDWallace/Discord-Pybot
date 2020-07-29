@@ -178,17 +178,57 @@ class Fun(commands.Cog):
     @commands.command()
     async def statgen(self,ctx,*,name=None):#,*,pref=None):
         pref = None
+        nameOrig = None
+        rolltype = 4
         stattypes = ['STR','DEX','CON','INT','WIS','CHA']
-        if 'Stats:' in name:
-            tmp = name.split('Stats:')
-            tmp = tmp[1].split()
 
-            for item in pref:
+        #sets up preference for stats if any
+        if name != None and 'stats:' in name.lower():
+            nameOrig = name
+            tmp = name.lower().split('stats:')
+            name = tmp[0]
+
+            #data for stat order
+            tmp = tmp[1].split()
+            tmp = [x.upper()[:3] for x in tmp]
+
+            for item in tmp:
                 for stat in stattypes:
-                    if item.lower().startswith(stat):
+                    #creates an order of preference for stats generated
+                    if item == stat:
+                        #changes type from NoneType to list if no previous enteries have been submitted
                         if pref == None:
-                            pref = []
-                        pref.append(stat)
+                            pref = [stat]
+
+                        #if the stat has not been added yet to the preference list, add
+                        elif stat not in pref:
+                            pref.append(stat)
+
+            #checks if all stats have been listed in pref. If not, will be added in random order
+            if pref != None and len(pref) < 6:
+                stattmp = [x for x in stattypes if x not in pref]
+                random.shuffle(stattmp)
+                for stat in stattmp:
+                    pref.append(stat)
+
+        if name != None and ('roll:' in name.lower() or (nameOrig != None and 'roll:' in nameOrig)):
+            if nameOrig != None and 'roll' not in name.lower():
+                tmp = nameOrig.lower().split('roll:')
+            else:
+                nameOrig = name
+                tmp = name.lower().split('roll:')
+                name = tmp[0]
+
+            #data for roll type
+            tmp = tmp[1].split()[0]
+            try:
+                rolltmp = int(tmp[0])
+                if rolltmp >= 3:
+                    rolltype = rolltmp
+            except:
+                pass
+
+
         #randomises alignment
         morals = ['Good','Neutral','Evil']
         method = ['Lawful','Neutral','Chaotic']
@@ -217,15 +257,22 @@ class Fun(commands.Cog):
         draw = ImageDraw.Draw(img)
 
         #obtains the most recently modified rank of the user
-        latest_rank = str(ctx.author.roles[-1]).title()
+        try:
+            latest_rank = str(ctx.author.roles[-1]).title()
+        except:
+            latest_rank = 'Player'
         if latest_rank == '@Everyone':
             latest_rank = 'Player'
 
-        #draws the name of the user to the background along with their rank and randomly chosen alignment underneith
-        if name == None and ctx.author.nick == None:
+        #draws the name of the user to the background along with their rank and randomly chosen alignment undernieth
+        if name == '':
+            name = None
+        if name == None and hasattr(ctx.author,'nick') and ctx.author.nick == None:
             name = ctx.author.name
-        elif name == None and ctx.author.nick != None:
+        elif name == None and hasattr(ctx.author,'nick') and ctx.author.nick != None:
             name = ctx.author.nick
+        elif name == None:
+            name = ctx.author.name
         name = name.title()
         draw.text((20,20),name,font=title,fill=(88, 23, 13))
         draw.text((20,h+25),f'{latest_rank}, {alignment}',font=italic,fill=(0,0,0))
@@ -239,7 +286,7 @@ class Fun(commands.Cog):
         stats = []
         for i in range(6):
             rolls = [0,0,0]
-            for k in range(4):
+            for k in range(rolltype):
                 rand = random.randint(1,6)
                 if k < 3:
                     rolls[k] = rand
@@ -250,50 +297,27 @@ class Fun(commands.Cog):
                         rolls[0] = rand
             stats.append(sum(rolls))
 
-        #draws the names of the stat types to the background using a for loop
+        #orders the stats if there is a defined preference
         count = 0
         if pref != None:
             #try:
             tmpstats = stats
+            #stats in ascending order
             stats.sort()
+            #reverses the ordering
             stats = stats[::-1]
-            pref = pref.split()
-            preforder = [7,7,7,7,7,7]
-            pref = [x.upper() for x in pref]
+            preforder = [5,5,5,5,5,5]
+
+            #ensures that all values in pref are uppercase
             for p in pref:
-                print(p)
                 for s in stattypes:
                     if s == p:
                         preforder[count] = stattypes.index(s)
                         count += 1
-                        #preforder.append(stattypes.index(s))
-            print(stats)
-            counter = 0
-            tmp = [0,0,0,0,0,0]
-            tmp2 = []
-            j = 0
-            for i in preforder:
-                if i < 6:
-                    tmp[counter] = stats[i]
-                else:
-                    tmp2.append(stats[j])
-                j += 1
-            if len(tmp2) > 0:
-                random.shuffle(tmp2)
-                j = 0
-                for i in range(len(tmp)):
-                    if tmp[i] == 0:
-                        tmp[i] = tmp2[j]
-                        j += 1
+                        continue
+            stats = [x for _,x in sorted(zip(preforder,stats))]
 
-            print(preforder)
-            #stats = [x for y, x in sorted(zip(preforder, stats))]
-            stats = tmp
-            print(stats)
-            #except:
-            #    stats = tmpstats
-
-
+        #draws the names of the stat types to the background using a for loop
         x = 40
         for stat in stattypes:
             draw.text((x,h+10),stat,font=regular,fill=(0,0,0))
@@ -304,7 +328,6 @@ class Fun(commands.Cog):
 
         #calculates the stat bonus for each slot
         bonus = []
-        print(stats)
         for stat in stats:
             string = ''
             if stat > 9:
@@ -334,7 +357,7 @@ class Fun(commands.Cog):
     async def youtube(self,ctx,*,query):
         ConsoleMessage(f'{ctx.author} has requested for the youtube search: "{query}"')
         found = False
-        for i in range(20):
+        for i in range(10):
             if found:
                 break
             base="https://www.youtube.com/results?search_query="
@@ -342,11 +365,12 @@ class Fun(commands.Cog):
             #query = urllib.parse.quote(query)
             r = requests.get(base+query)
             page=r.text
+            r.close()
             soup=bs(page,'html.parser')
-
-            vids = soup.findAll('a',attrs={'class':'yt-uix-tile-link'})
-
+            #vids = soup.findAll('a',attrs={'class':'yt-uix-tile-link'})
+            vids = soup.findAll('a',attrs={'class':'yt-simple-endpoint style-scope ytd-video-renderer'})
             for v in vids:
+                print(v)
                 if str(v['href']).startswith('/watch?v='):
                     result = 'https://www.youtube.com' + v['href']
                     found = True

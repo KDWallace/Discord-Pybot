@@ -237,7 +237,13 @@ async def on_message(ctx):
     #the bot will ignore any message made by itself
     if ctx.author.id == client.user.id or ctx.author.bot:
         return
-    memb = ctx.guild.get_member(ctx.author.id)
+
+    #this may fail if in DM
+    try:
+        memb = ctx.guild.get_member(ctx.author.id)
+    except:
+        await client.process_commands(ctx)
+        return
     #this may throw an error if the user does not have any permissions, hence the try/catch
     try:
         #checks if the user is an admin, if they are all further checks such as spam and badwords are bypassed
