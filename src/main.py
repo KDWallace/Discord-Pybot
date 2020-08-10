@@ -11,7 +11,7 @@
 ### Commands:
 # .load, .unload, .reload, .dictreload
 ### Functions:
-# add_usage, ConsoleMessage, ErrorLog, has_channel_perms, deLeetSpeak, loadWordDict,
+# add_usage, ConsoleMessage, ErrorLog, has_channel_perms, deLeetSpeak, loadWordDict, has_botrank
 ### Objects:
 # User
 ################################################################################################################
@@ -149,6 +149,12 @@ def has_channel_perms(ctx):
             break
     #if command is not found or there is no whitelist and blacklist enabled, assume has permissions
     return True
+
+def has_botrank(ctx):
+    try:
+        return ctx.channel.permissions_for(ctx.author).administrator or get(ctx.guild.roles, name='Acolytes') in ctx.author.roles
+    except:
+        return False
 
 #function used in removing banned words as users may attempt to bypass the wordcheck by disguising symbols as other letters, or using "1337" (leet) speak
 #the reason this adds a new version of the word rather than replacing the symbol for what it represents is that the same symbol can represent the same thing

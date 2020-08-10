@@ -11,13 +11,18 @@
 ################################################################################################################
 
 import discord, random, json
-from main import ConsoleMessage, ErrorLog, add_usage
+from main import ConsoleMessage, ErrorLog, add_usage, has_botrank
 from discord.ext import commands
 
 class Utility(commands.Cog):
     #initialises object with client from main
     def __init__(self, client):
         self.client = client
+
+
+    #@commands.Cog.listener()
+    #async def on_member_update(self,before,after):
+    #    print(after.author)
 
 ########################################################################################################
 #############################################   COMMANDS   #############################################
@@ -58,6 +63,21 @@ class Utility(commands.Cog):
         else:
             ErrorLog(error)
 
+    @commands.command(aliases=['cn','nick','nickname','changenick'])
+    @commands.check(has_botrank)
+    async def changenickname(self,ctx,user,*,nickname):
+        if int(user[3:-1]) != ctx.author.id:
+            user = ctx.guild.get_member(int(user[3:-1]))
+            if user != None:
+                ConsoleMessage(f'{ctx.author} changed {user}\'s name to {nickname}')
+                if len(nickname) > 32:
+                    await ctx.send(f'Sorry {ctx.author.mention}, but that nickname is too long (32 character limit, `{nickname}` has {len(nickname)} characters) :sweat_smile:')
+                else:
+                    await user.edit(nick=nickname)# client.change_nickname(user,nick)
+            else:
+                await ctx.send(f'Sorry {ctx.author.mention}, but I couldn\'t find that user :frown:\nPlease use the format of `.nick @username nickname`')
+        else:
+            await ctx.send(f'{ctx.author.mention} tried to change their own nickname, they should be ashamed! :angry:')
 
     #changes the status of the bot on discord below the bots name. The user can choose from either "playing", "watching" or "listening to"
     #must have admin privileges to use

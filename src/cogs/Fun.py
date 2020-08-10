@@ -7,20 +7,31 @@
 ### Commands:
 # .roll, .statgen, .youtube
 ### Functions:
-# rollSingleDice, setup
+# rollSingleDice, fitbox, setup
 ################################################################################################################
 
-import discord, random, os, math, requests, urllib
+import discord, random, os, math, requests, urllib, asyncio, json
 from bs4 import BeautifulSoup as bs
 from main import has_channel_perms, ConsoleMessage, add_usage, PATH
 from PIL import Image, ImageFont, ImageDraw
 from time import sleep
+from datetime import datetime
 from discord.ext import commands
 
 class Fun(commands.Cog):
     #initialises object with client from main
     def __init__(self, client):
         self.client = client
+        self.channel = None
+        self.meabhuser = None
+        self.timestamp = ''
+        self.BOXFIT = 340
+        self.arial = ImageFont.truetype(f'{PATH}\\resources\\fonts\\arial.ttf',24)
+        with open(f'{PATH}\\data\\tmpdata\\timestamps.json','r') as f:
+            self.timestamp = json.load(f)
+            self.meabh = self.timestamp['Meabhs 16']
+            self.timestamp = self.timestamp['16 personality']
+
 
     #function called in .roll if a single dice is rolled (.roll dx or .roll 1dx)
     def rollSingleDice(self,ctx,dice_val):
@@ -59,6 +70,169 @@ class Fun(commands.Cog):
             out = f'Hmmm...I don\'t think that\'s a real dice {ctx.author.mention}.\nTry one of these dice: `.d2, .d4, .d6, .d8, .d10, .d12, .d20, .d100`'
         return out
 
+    def fitbox(self,string):
+        retlist = []
+        size = self.arial.getsize(string)[0]
+        i = 0
+        line = ''
+        if size > self.BOXFIT:
+            size = 0
+            while size < self.BOXFIT and i < len(string):
+                line = line + string[i]
+                size = self.arial.getsize(line)[0]
+                i += 1
+                if size >= self.BOXFIT:
+                    while not(line.endswith(' ')):
+                        line = line[:-1]
+                    string = string[len(line):]
+                    retlist.append(line)
+                    if len(string) > 0:
+                        if self.arial.getsize(string)[0] > self.BOXFIT:
+                            size = 0
+                            line = ''
+                            i = 0
+                        else:
+                            retlist.append(string)
+                            break
+                    else:
+                        break
+            return retlist
+        else:
+            return [string]
+
+######################################################################################################
+#############################################   EVENTS   #############################################
+#This section is for event checking and will call the below functions if the event in question occures
+    async def person_16(self):
+        while True:
+            await asyncio.sleep(600)
+            with open(f'{PATH}\\data\\tmpdata\\timestamps.json','r') as f:
+                tmp = json.load(f)['16 personality']
+            if tmp != datetime.today().strftime("%Y-%m-%d"):
+                ConsoleMessage('Posted 16 personality MOTD on channel')
+                self.timestamp = {'16 personality':datetime.today().strftime("%Y-%m-%d"),'Meabhs 16':self.meabh}
+                with open(f'{PATH}\\data\\tmpdata\\timestamps.json','w') as f:
+                    json.dump(self.timestamp,f,indent=4)
+
+                try:
+                    #moose, only1connor, spork, jallerston
+                    userlist   = [474037926641008640,379373007896051712,581781390471725056,459404973583761429]
+                    userimages = []
+                    i = 1
+                    for id in userlist:
+                        user = self.client.get_user(id)
+                        #urluser = f'https://cdn.discordapp.com/avatars/{id}/{user.avatar}.png?size=1024'
+                        #userimages.append(urluser)
+                        r = requests.get(f'https://cdn.discordapp.com/avatars/{id}/{user.avatar}.png?size=64')
+                        if str(r) != '<Response [404]>':
+                            with open(f'{PATH}\\resources\\images\\tmp\\avatar{i}.png','wb') as f:
+                                f.write(r.content)
+                            await asyncio.sleep(1)
+                        i += 1
+                except:
+                    pass
+
+                if self.channel == None:
+                    self.channel = await self.client.fetch_channel(738807913971318805)
+
+                url = 'https://www.16personalities.com/'
+                perstypes = ['intp','infj','infp','istj']
+                locs = [(203,166),(612,166),(203,458),(612,458)]
+
+                img  = Image.open(f'{PATH}\\resources\\images\\personalities.png')
+                draw = ImageDraw.Draw(img)
+
+                k = 0
+                for pers in perstypes:
+                    src = requests.get(f'{url}{pers}-personality').text
+                    soup = bs(src,'html.parser')
+                    motd = soup.find('div',attrs={'class':'insight'})
+                    motd = str(motd)[21:-6]
+                    motd_lines = []
+                    size = self.arial.getsize(motd)[0]
+                    motd_lines = (self.fitbox(motd))
+                    locframe = ((8,0),(412,0),(8,293),(412,293))
+
+                    if os.path.isfile(f'{PATH}\\resources\\images\\tmp\\avatar{k+1}.png'):
+                        avatar = Image.open(f'{PATH}\\resources\\images\\tmp\\avatar{k+1}.png')
+                        frame = Image.open(f'{PATH}\\resources\\images\\persframe.png')
+                        frame.convert('RGBA')
+
+                        #avatar = avatar.crop((0,0,50,50))
+                        #img.paste(avatar,(locs[k][0],locs[k][1]))
+                        #mask = Image.new("L", avatar.size, 0)
+                        #drawmask = ImageDraw.Draw(mask)
+                        #drawmask.ellipse((0, 0, avatar.size[0], avatar.size[1]), fill=255)
+                        #result = avatar.copy()
+                        #result.putalpha(mask)
+                        #result.convert('RGBA')
+                        #result.save(f'{PATH}\\resources\\images\\tmp\\av{k+1}.png')
+                        #await asyncio.sleep(1)
+                        #newav = Image.open(f'{PATH}\\resources\\images\\tmp\\av{k+1}.png')
+                        dx = 0
+                        if k%2 != 0:
+                            dx = 4
+
+                        img.paste(frame,(locframe[k][0],locframe[k][1]))
+                        img.paste(avatar,(locs[k][0]-32-dx,locs[k][1]-119))
+
+                        draw.polygon([(locframe[k][0] + 195,locframe[k][1] + 110),(locframe[k][0] + 149,locframe[k][1] + 85),(locframe[k][0] + 149,locframe[k][1] + 110)],fill = (87,96,113))
+                        draw.polygon([(locframe[k][0] + 194,locframe[k][1] + 110),(locframe[k][0] + 236,locframe[k][1] + 90),(locframe[k][0] + 236,locframe[k][1] + 110)],fill = (87,96,113))
+
+                        os.remove(f'{PATH}\\resources\\images\\tmp\\avatar{k+1}.png')
+
+                #        i += 1
+                    j = 0
+                    for line in motd_lines:
+                        draw.text((locs[k][0]-(self.arial.getsize(line)[0]/2),locs[k][1] + ((self.arial.getsize('YE')[1]+3)*j)),line,font=self.arial,fill=(255,255,255))
+                        j += 1
+                    k += 1
+
+                img.save(f'{PATH}\\resources\\images\\tmp\\tmppers.png')
+                await self.channel.send(file=discord.File(f'{PATH}\\resources\\images\\tmp\\tmppers.png'))
+                #await self.channel.send(f'Ignore this message, this is for testing purposes\n{urluser}')
+                os.remove(f'{PATH}\\resources\\images\\tmp\\tmppers.png')
+
+    async def meabhISFJ(self):
+        while True:
+            await asyncio.sleep(600)
+            with open(f'{PATH}\\data\\tmpdata\\timestamps.json','r') as f:
+                tmp = json.load(f)
+            prev = tmp['16 personality']
+            tmp = tmp['Meabhs 16']
+            if tmp != datetime.today().strftime("%Y-%m-%d"):
+                ConsoleMessage('Posted 16 personality MOTD to Meabh')
+                self.timestamp = {'16 personality':prev,'Meabhs 16':datetime.today().strftime("%Y-%m-%d")}
+                with open(f'{PATH}\\data\\tmpdata\\timestamps.json','w') as f:
+                    json.dump(self.timestamp,f,indent=4)
+
+                if self.meabhuser == None:
+                    self.meabhuser = await self.client.fetch_user(185869510706855937)
+
+                url = 'https://www.16personalities.com/isfj-personality'
+
+                img  = Image.open(f'{PATH}\\resources\\images\\isfj.png')
+                draw = ImageDraw.Draw(img)
+                src = requests.get(url).text
+                soup = bs(src,'html.parser')
+                motd = soup.find('div',attrs={'class':'insight'})
+                motd = str(motd)[21:-6]
+                motd_lines = []
+                size = self.arial.getsize(motd)[0]
+                motd_lines = (self.fitbox(motd))
+                j = 0
+                for line in motd_lines:
+                    draw.text((205-(self.arial.getsize(line)[0]/2),165 + ((self.arial.getsize('YE')[1]+3)*j)),line,font=self.arial,fill=(255,255,255))
+                    j += 1
+
+                img.save(f'{PATH}\\resources\\images\\tmp\\meabhmsg.png')
+                try:
+                    await self.meabhuser.send(file=discord.File(f'{PATH}\\resources\\images\\tmp\\meabhmsg.png'))
+                except:
+                    ConsoleMessage('MOTD failed to send to Meabh')
+                #await self.channel.send(f'Ignore this message, this is for testing purposes\n{urluser}')
+                os.remove(f'{PATH}\\resources\\images\\tmp\\meabhmsg.png')
+
 ########################################################################################################
 #############################################   COMMANDS   #############################################
 #This section is for command calling, all functions with the decorator @client.command() will be called
@@ -66,7 +240,7 @@ class Fun(commands.Cog):
 
     #command for rolling dice. Can roll up to 30 dice of sides 2,4,6,8,10,12,20 and 100
     #checks that it can be used in the requested channel by accessing "../config/command locations.json"
-    @commands.command()
+    @commands.command(aliases=['r'])
     @commands.check(has_channel_perms)
     async def roll(self, ctx, dice):
         #if the user does not specify the number of dice to use, will only use one
@@ -175,6 +349,64 @@ class Fun(commands.Cog):
         else:
             await ctx.send(f'Sorry {ctx.author.mention} but I don\'t think I understand you.\nTry typing `.roll` followed by the number of dice you would like to roll (max 30), then the dice you would like to use!\nE.g: if I wanted to roll 5, 6-sided dice, I would type `.roll 5d6`')
 
+    @commands.command(aliases=['rg'])
+    async def rollgen(self,ctx,dice):
+        img  = Image.open(f'{PATH}\\resources\\images\\dice.png')
+
+        val = 0
+        accepted_dice = ((4,6,8),(10,12,20))
+        locs = (0,118,230,348)
+
+        try:
+            val = int(dice)
+            x = 0
+            y = 0
+            if val in accepted_dice[0] or val in accepted_dice[1]:
+                if val in accepted_dice[1]:
+                    y = 108
+                    group = accepted_dice[1]
+                else:
+                    group = accepted_dice[0]
+                x = locs[group.index(val)]
+                img = img.crop((x,y,locs[locs.index(x)+1],108+y))
+
+                dsize = 0
+                if val == 20:
+                    dsize = 10
+
+                roll = random.randint(1,val)
+                dshadow = 0
+                if roll == val or roll == 1:
+                    dshadow = 4
+
+                italic  = ImageFont.truetype(f'{PATH}\\resources\\fonts\\ScalaSans Italic.ttf',34-dsize)
+                shadow  = ImageFont.truetype(f'{PATH}\\resources\\fonts\\ScalaSans Italic.ttf',40-dsize + dshadow)
+
+                draw = ImageDraw.Draw(img)
+                dx = 0
+                dy = 0
+                if val == group[1]:
+                    dx = 1
+                    dy = 6
+                if val == 8 or val == 10:
+                    dy = 8
+                colour = (180,180,180)
+                if roll == val:
+                    colour = (255,255,255)
+                elif roll == 1:
+                    colour = (100,0,0)
+                draw.text((img.size[0]/2 - dx - shadow.getsize(str(roll))[0]/2, img.size[1]/2 - dy - italic.getsize(str(roll))[1]/2),str(roll),font=italic,fill=(100,100,100))
+                draw.text((img.size[0]/2 - dx - italic.getsize(str(roll))[0]/2, img.size[1]/2 - dy - italic.getsize(str(roll))[1]/2),str(roll),font=italic,fill=colour)
+
+
+                #draw.text((0,0),str(roll),font=italic,fill=(0,0,0))
+
+                img.save(f'{PATH}\\resources\\images\\tmp\\roll.png')
+                await ctx.send(file=discord.File(f'{PATH}\\resources\\images\\tmp\\roll.png'))
+                os.remove(f'{PATH}\\resources\\images\\tmp\\roll.png')
+        except:
+            pass
+
     @commands.command()
     async def statgen(self,ctx,*,name=None):#,*,pref=None):
         pref = None
@@ -220,14 +452,16 @@ class Fun(commands.Cog):
                 name = tmp[0]
 
             #data for roll type
+            rolls = tmp[1]
             tmp = tmp[1].split()[0]
             try:
                 rolltmp = int(tmp[0])
                 if rolltmp >= 3:
                     rolltype = rolltmp
             except:
-                pass
 
+                if rolls.lower() == 'array' or rolls.lower() == 'std' or rolls.lower().startswith('standard'):
+                    rolltype = 'array'
 
         #randomises alignment
         morals = ['Good','Neutral','Evil']
@@ -284,18 +518,23 @@ class Fun(commands.Cog):
 
         #stat generation with 4 dice rolls for each block (take the best 3)
         stats = []
-        for i in range(6):
-            rolls = [0,0,0]
-            for k in range(rolltype):
-                rand = random.randint(1,6)
-                if k < 3:
-                    rolls[k] = rand
-                else:
-                    #sorts in ascending order so the lowest can be replaced if needed
-                    rolls.sort()
-                    if rolls[0] < rand:
-                        rolls[0] = rand
-            stats.append(sum(rolls))
+        if rolltype == 'array':
+            stats = [15,14,13,12,10,8]
+            random.shuffle(stats)
+        else:
+            for i in range(6):
+                rolls = [0,0,0]
+                for k in range(rolltype):
+                    rand = random.randint(1,6)
+                    if k < 3:
+                        rolls[k] = rand
+                    else:
+                        #sorts in ascending order so the lowest can be replaced if needed
+                        rolls.sort()
+                        if rolls[0] < rand:
+                            rolls[0] = rand
+                stats.append(sum(rolls))
+
 
         #orders the stats if there is a defined preference
         count = 0
@@ -389,3 +628,5 @@ class Fun(commands.Cog):
 #adds extension to client when called
 def setup(client):
     client.add_cog(Fun(client))
+    client.loop.create_task(client.get_cog('Fun').person_16())
+    client.loop.create_task(client.get_cog('Fun').meabhISFJ())
