@@ -202,6 +202,7 @@ class Fun(commands.Cog):
             tmp = tmp['Meabhs 16']
             if tmp != datetime.today().strftime("%Y-%m-%d"):
                 ConsoleMessage('Posted 16 personality MOTD to Meabh')
+                self.meabh = datetime.today().strftime("%Y-%m-%d")
                 self.timestamp = {'16 personality':prev,'Meabhs 16':datetime.today().strftime("%Y-%m-%d")}
                 with open(f'{PATH}\\data\\tmpdata\\timestamps.json','w') as f:
                     json.dump(self.timestamp,f,indent=4)

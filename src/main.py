@@ -34,6 +34,7 @@ wordlist = []
 users = []
 
 has_loaded = False
+demotion_rank = None
 
 #user object for preventing spam
 class User(object):
@@ -150,9 +151,25 @@ def has_channel_perms(ctx):
     #if command is not found or there is no whitelist and blacklist enabled, assume has permissions
     return True
 
-def has_botrank(ctx):
+async def has_botrank(ctx):
     try:
-        return ctx.channel.permissions_for(ctx.author).administrator or get(ctx.guild.roles, name='Acolytes') in ctx.author.roles
+        with open(f'{PATH}\\config\\server ranks.json','r') as f:
+            tmp = json.load(f)
+        if str(ctx.guild.id) not in tmp:
+            tmp[str(ctx.guild.id)] = {'Server Name':ctx.guild.name,'Bot Rank':tmp['default']['Bot Rank'],'Demotion Rank':tmp['default']['Demotion Rank']}
+            with open(f'{PATH}\\config\\server ranks.json','w') as f:
+                json.dump(tmp,f,indent=4)
+        if 'Bot Rank' in tmp[str(ctx.guild.id)]:
+            rankname = tmp[str(ctx.guild.id)]['Bot Rank']
+        else:
+            rankname = tmp['default']['Bot Rank']
+            tmp[str(ctx.guild.id)]['Bot Rank'] = rankname
+            with open(f'{PATH}\\config\\server ranks.json','w') as f:
+                json.dump(tmp,f,indent=4)
+        if get(ctx.guild.roles, name=rankname) == None:
+            ConsoleMessage(f'The role "{rankname}" has been automatically generated for "{ctx.guild.name}" server for users that can use specialised bot commands')
+            await ctx.guild.create_role(name=rankname)
+        return ctx.channel.permissions_for(ctx.author).administrator or get(ctx.guild.roles, name=rankname) in ctx.author.roles
     except:
         return False
 
@@ -229,6 +246,7 @@ async def on_ready():
                     print('Extension previously loaded')
                     continue
         #once all extensions are loaded, host is informed that the bot is active
+
         print(f'   - {client.user.name} is online!')
         print(' ------------------------------------------------------------------')
         #adds to "Successful bootups" stat in "usage.json"
@@ -260,14 +278,46 @@ async def on_message(ctx):
         pass
     #check for spam
     #check if user can message (do they have the demotion role)
-    if get(ctx.guild.roles, name='Heretic') in memb.roles:
+
+    #finds custom roles file
+    with open(f'{PATH}\\config\\server ranks.json','r') as f:
+        tmpdict = json.load(f)
+
+    #if the server id exists inside the json
+    if str(ctx.guild.id) in tmpdict:
+        #if the demotion role can be found, assign as rank var
+        if 'Demotion Rank' in tmpdict[str(ctx.guild.id)]:
+            rankname = tmpdict[str(ctx.guild.id)]['Demotion Rank']
+        #if there is no rank, create based on default and save
+        else:
+            tmpdict[str(ctx.guild.id)]['Demotion Rank'] = tmpdict['default']['Demotion Rank']
+            with open(f'{PATH}\\config\\server ranks.json','w') as f:
+                json.dump(tmpdict,f,indent=4)
+            rankname = tmpdict[str(ctx.guild.id)]['Demotion Rank']
+            ConsoleMessage(f'Demotion rank "{rankname}" added to .json file for "{ctx.guild.name}" server')
+    #if the server id does not exist
+    else:
+        #create new server id with default vars
+        tmpdict[str(ctx.guild.id)] = {'Server Name':ctx.guild.name,'Bot Rank':tmpdict['default']['Bot Rank'],'Demotion Rank':tmpdict['default']['Demotion Rank']}
+        #save new id
+        with open(f'{PATH}\\config\\server ranks.json','w') as f:
+            json.dump(tmpdict,f,indent=4)
+        rankname = tmpdict[str(ctx.guild.id)]['Demotion Rank']
+        ConsoleMessage(f'Data for roles permissions have been generated for "{ctx.guild.name}" server in the server ranks.json')
+
+
+    if rankname != None and get(ctx.guild.roles, name=rankname) == None:
+        ConsoleMessage(f'The role "{rankname}" has been automatically generated for "{ctx.guild.name}" server as a penalty role')
+        await ctx.guild.create_role(name=rankname)
+
+    if rankname != None and get(ctx.guild.roles, name=rankname) in memb.roles:
         #checks the list of users that have been monitored for the user
         for member in users:
             if member.id == ctx.author.id:
                 #if the role was placed by the bot and the temporary silence time has passed
                 if member.botplaced and time.time() - member.purge_time > member.timeout:
                     #remove the role and inform the user that they can now speak
-                    role = get(ctx.guild.roles, name='Heretic')
+                    role = get(ctx.guild.roles, name=rankname)
                     await memb.remove_roles(role)
                     member.botplaced = False
                     await ctx.channel.send(f'I hope you can behave now {ctx.author.mention}! Next time, I\'ll be meaner!')
@@ -287,99 +337,100 @@ async def on_message(ctx):
         await client.process_commands(ctx)
 
     #checks the list of users made by the bot for the member
-    founduser = False
-    for member in users:
-        if member.id == ctx.author.id:
-            founduser = True
-            #check if the bot is still processing a user for spam
-            if member.isPurged:
-                return
-            #if the user has no recorded messages, set the last time sent to now
-            elif member.last_msg_time == 0:
-                member.msg_spam = 0
-            #if the user has not sent a message in 2 minutes, reset stats
-            elif time.time() - member.last_msg_time > 120:
-                member.msg_spam = 0
-            #if the last mesasge is the same as the current message and it was within 1.5 seconds
-            elif ctx.content == member.last_msg and time.time() - member.last_msg_time <= 1.5:
-                #set last time to now and increase the spam counter
-                member.msg_spam += 2
-                #if the message is over 200 characters long, increase the counter further
-                if len(ctx.content) > 200:
-                    member.msg_spam += 1
-            #if the time between now and the previous message is more than 1.5 seconds
-            elif time.time() - member.last_msg_time > 1.5:
-                #if this message is not the same as the last, set time to now and deduct 1 from spam counter
-                if member.last_msg != ctx.content:
-                    if member.msg_spam > 0:
-                        member.msg_spam -= 1
-                #if it is the same message but it's been more than 5 seconds, set time to now and deduct 1 from spam counter
-                elif time.time() - member.last_msg_time > 5:
-                    if member.msg_spam > 0:
-                        member.msg_spam -= 1
-                #if it has not been more than 5 seconds yet the message is the same as the last, increase counter by 1
-                else:
-                    member.msg_spam += 1
-                    #if the message has more than 200 characters, increase counter by 1
+    if rankname != None:
+        founduser = False
+        for member in users:
+            if member.id == ctx.author.id:
+                founduser = True
+                #check if the bot is still processing a user for spam
+                if member.isPurged:
+                    return
+                #if the user has no recorded messages, set the last time sent to now
+                elif member.last_msg_time == 0:
+                    member.msg_spam = 0
+                #if the user has not sent a message in 2 minutes, reset stats
+                elif time.time() - member.last_msg_time > 120:
+                    member.msg_spam = 0
+                #if the last mesasge is the same as the current message and it was within 1.5 seconds
+                elif ctx.content == member.last_msg and time.time() - member.last_msg_time <= 1.5:
+                    #set last time to now and increase the spam counter
+                    member.msg_spam += 2
+                    #if the message is over 200 characters long, increase the counter further
                     if len(ctx.content) > 200:
                         member.msg_spam += 1
-            #if the message is not the same but is within 1.5 seconds, set last time to now and
-            else:
-                member.msg_spam += 1
-                if len(ctx.content) > 200:
+                #if the time between now and the previous message is more than 1.5 seconds
+                elif time.time() - member.last_msg_time > 1.5:
+                    #if this message is not the same as the last, set time to now and deduct 1 from spam counter
+                    if member.last_msg != ctx.content:
+                        if member.msg_spam > 0:
+                            member.msg_spam -= 1
+                    #if it is the same message but it's been more than 5 seconds, set time to now and deduct 1 from spam counter
+                    elif time.time() - member.last_msg_time > 5:
+                        if member.msg_spam > 0:
+                            member.msg_spam -= 1
+                    #if it has not been more than 5 seconds yet the message is the same as the last, increase counter by 1
+                    else:
+                        member.msg_spam += 1
+                        #if the message has more than 200 characters, increase counter by 1
+                        if len(ctx.content) > 200:
+                            member.msg_spam += 1
+                #if the message is not the same but is within 1.5 seconds, set last time to now and
+                else:
                     member.msg_spam += 1
-            #sets last message time and the last message
-            member.last_msg_time = time.time()
-            member.last_msg = ctx.content
+                    if len(ctx.content) > 200:
+                        member.msg_spam += 1
+                #sets last message time and the last message
+                member.last_msg_time = time.time()
+                member.last_msg = ctx.content
 
-            #if the user has spammed the chat enough to make the counter reach 10
-            if member.msg_spam >= 10:
+                #if the user has spammed the chat enough to make the counter reach 10
+                if member.msg_spam >= 10:
 
-                #temp check so the bot doesn't itterate through this function more than once if there is latency or the user is spamming quicker than the bot can silence
-                #(without this, the bot will spam the message once or twice)
-                member.isPurged = True
-                #a check on the user to confirm that the role was placed automatically
-                member.botplaced = True
-                #adds to offences counter
-                member.offences += 1
-                #keeps track of time of disipline
-                member.purge_time = time.time()
-                #if the number of offences are 2 or less, the time out time is x minutes
-                if member.offences < 3:
-                    member.timeout = 60 * member.offences
-                #if the user has done this more than 2 times, the time out time is 5 minutes * number of offences over 2
-                else:
-                    member.timeout = 300 * (member.offences-2)
+                    #temp check so the bot doesn't itterate through this function more than once if there is latency or the user is spamming quicker than the bot can silence
+                    #(without this, the bot will spam the message once or twice)
+                    member.isPurged = True
+                    #a check on the user to confirm that the role was placed automatically
+                    member.botplaced = True
+                    #adds to offences counter
+                    member.offences += 1
+                    #keeps track of time of disipline
+                    member.purge_time = time.time()
+                    #if the number of offences are 2 or less, the time out time is x minutes
+                    if member.offences < 3:
+                        member.timeout = 60 * member.offences
+                    #if the user has done this more than 2 times, the time out time is 5 minutes * number of offences over 2
+                    else:
+                        member.timeout = 300 * (member.offences-2)
 
-                ###loop used to remove all roles from the user
-                ###no longer in use now the bot checks for the heretic role and prevents messages
-                #for role in ctx.author.roles:
-                #    if role.name != '@everyone' and role.name != 'Heretic':
-                #        try:
-                #            await ctx.author.remove_roles(role)
-                #        except:
-                #            continue
+                    ###loop used to remove all roles from the user
+                    ###no longer in use now the bot checks for the heretic role and prevents messages
+                    #for role in ctx.author.roles:
+                    #    if role.name != '@everyone' and role.name != 'Heretic':
+                    #        try:
+                    #            await ctx.author.remove_roles(role)
+                    #        except:
+                    #            continue
 
-                #obtains the demotion role and applies it to the user
-                #TODO: make the name of the role configurable and allow the bot to make it if not already existing
-                role = get(ctx.author.guild.roles, name='Heretic')
-                await ctx.author.add_roles(role)
-                #await asyncio.sleep(1)
+                    #obtains the demotion role and applies it to the user
+                    #TODO: make the name of the role configurable and allow the bot to make it if not already existing
+                    role = get(ctx.author.guild.roles, name=rankname)
+                    await ctx.author.add_roles(role)
+                    #await asyncio.sleep(1)
 
-                #simple grammar check. If the time out is 1 minute (first offence), it will say 1 minute as opposed to 1 minutes. It's predantic but kinda nice
-                if member.timeout == 60:
-                    await ctx.channel.send(f'Sorry {ctx.author.mention}, but I\'ve been told to demote anyone that\'s spamming the server!\nTry messaging in 1 minute to remove the {role} role\nIf something is wrong about this then just send a message to <@!474037926641008640>')
-                else:
-                    await ctx.channel.send(f'Sorry {ctx.author.mention}, but I\'ve been told to demote anyone that\'s spamming the server!\nTry messaging in {int(member.timeout/60)} minutes to remove the {role} role\nIf something is wrong about this then just send a message to <@!474037926641008640>')
+                    #simple grammar check. If the time out is 1 minute (first offence), it will say 1 minute as opposed to 1 minutes. It's predantic but kinda nice
+                    if member.timeout == 60:
+                        await ctx.channel.send(f'Sorry {ctx.author.mention}, but I\'ve been told to demote anyone that\'s spamming the server!\nTry messaging in 1 minute to remove the {role} role\nIf something is wrong about this then just send a message to <@!474037926641008640>')
+                    else:
+                        await ctx.channel.send(f'Sorry {ctx.author.mention}, but I\'ve been told to demote anyone that\'s spamming the server!\nTry messaging in {int(member.timeout/60)} minutes to remove the {role} role\nIf something is wrong about this then just send a message to <@!474037926641008640>')
 
-                #sets the check to false, the bot is done dealing with the user at this point
-                member.isPurged = False
-                #resets the counters for the user
-                member.msg_spam = 0
-                member.last_msg_time = 0
+                    #sets the check to false, the bot is done dealing with the user at this point
+                    member.isPurged = False
+                    #resets the counters for the user
+                    member.msg_spam = 0
+                    member.last_msg_time = 0
 
-                #logs the action of the bot to the console
-                ConsoleMessage(f'{ctx.author} was automatically demoted for spam')
+                    #logs the action of the bot to the console
+                    ConsoleMessage(f'{ctx.author} was automatically demoted for spam')
 
     #if the user has not been added to the list, create a new user object and add to the list
     if founduser == False:
